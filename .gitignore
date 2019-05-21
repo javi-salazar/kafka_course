@@ -1,0 +1,7 @@
+credentials.xml
+.idea
+.settings
+target
+.project
+.classpath
+.*.iml

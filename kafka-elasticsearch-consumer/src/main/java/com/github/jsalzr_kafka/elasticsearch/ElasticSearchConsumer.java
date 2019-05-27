@@ -5,6 +5,11 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -16,6 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.Properties;
 
 public class ElasticSearchConsumer {
     public static RestHighLevelClient createClient() {
@@ -41,24 +49,20 @@ public class ElasticSearchConsumer {
         return client;
     }
 
-    public static void main(String[] args) throws IOException {
-        Logger logger =
-                LoggerFactory.getLogger(ElasticSearchConsumer.class.getName());
+    public static Consumer createConsumer(RestHighLevelClient client) {
+        Consumer consumer = new Consumer(client, "twitter_tweets");
+        return consumer;
+    }
 
+    public static void main(String[] args) throws IOException {
         RestHighLevelClient client = createClient();
 
-        String jsonString = "{ \"foo\": \"bar\"}";
+        Consumer consumer = createConsumer(client);
 
-        IndexRequest indexRequest =
-                new IndexRequest("twitter", "tweets")
-                        .source(jsonString, XContentType.JSON);
+        while(true) {
+            consumer.startConsuming();
+        }
 
-        IndexResponse indexResponse = client.index(indexRequest,
-                RequestOptions.DEFAULT);
-
-        String id = indexResponse.getId();
-        logger.info(id);
-
-        client.close();
+        // client.close();
     }
 }
